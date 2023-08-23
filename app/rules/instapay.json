@@ -1,0 +1,37 @@
+{
+	"name": "Instapay",
+	"attributes": [
+		{
+			"name": "balance",
+			"type": "number"
+		},
+		{
+			"name": "org",
+			"type": "array"
+		}
+	],
+	"decisions": 
+		{
+			"conditions": {
+				"all": [
+					{
+						"fact": "balance",
+						"operator": "greaterThan",
+						"value": 0
+					},
+					{
+						"fact": "org",
+						"operator": "notIn",
+						"value": "OrgX, OrgZ"
+					}
+				]
+			},
+			"event": {
+				"type": "Eligible",
+				"params": {
+					"message": "User eligible for Instapay"
+				}
+			}
+		}
+	
+}
