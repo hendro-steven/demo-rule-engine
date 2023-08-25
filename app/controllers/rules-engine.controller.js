@@ -171,14 +171,38 @@ exports.instaPayEligibility = (req, res) => {
   engine.on("success", (event, almanac, ruleResult) => {
     res.status(200).send({
       message: event.params.message,
+      results: extractResult(ruleResult),
     });
   });
 
   engine.on("failure", (event, almanac, ruleResult) => {
     res.status(200).send({
       message: "User not eligible for Instapay",
+      results: extractResult(ruleResult),
     });
   });
+
+  const extractResult = (ruleResult) => {
+    // if rule succeeded
+    if (ruleResult.result) {
+      return ruleResult.result;
+    }
+    // if rule failed, iterate over each failed condition to determine why user didn't qualify
+    const detail = ruleResult.conditions.all
+      .filter((condition) => !condition.result)
+      .map((condition) => {
+        switch (condition.operator) {
+          case "greaterThan":
+            return `${condition.fact} is ${condition.factResult} it should more than 0`;
+          case "notIn":
+            return `${condition.fact} of ${condition.factResult} is in the Blacklist`;
+          default:
+            return "";
+        }
+      })
+      .join(" and ");
+    return detail;
+  };
 
   engine.run(facts);
 };
